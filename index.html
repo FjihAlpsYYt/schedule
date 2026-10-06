@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSchedule - うっかりゼロ！爆速スケジュール帳</title>
+  <style>
+    /* テーマ定義（CSS変数） */
+    :root {
+      /* ライトモード標準色 */
+      --bg-color: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border-color: #d1d5db;
+      --switcher-bg: #e5e7eb;
+      --input-bg: #ffffff;
+      
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+
+      --alert-bg: #fef2f2;
+      --alert-border: #ef4444;
+      --alert-text: #991b1b;
+    }
+
+    /* ダークモード定義 */
+    body.dark-mode {
+      --bg-color: #111827;
+      --card-bg: #1f2937;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border-color: #374151;
+      --switcher-bg: #374151;
+      --input-bg: #111827;
+
+      --primary: #818cf8;
+      --primary-hover: #6366f1;
+
+      --alert-bg: #3f1d1d;
+      --alert-border: #f87171;
+      --alert-text: #fca5a5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 1rem;
+      max-width: 900px;
+      margin: 0 auto;
+      padding-bottom: 3rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-top: 0.5rem;
+    }
+
+    .header-title h1 {
+      font-size: 1.6rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .header-title p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* テーマ切り替えボタン */
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.5rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+    }
+
+    /* ビュー切り替えタブ */
+    .view-switcher {
+      display: flex;
+      background-color: var(--switcher-bg);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.6rem;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background-color: var(--card-bg);
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* 入力フォーム */
+    .form-card {
+      background-color: var(--card-bg);
+      padding: 1.25rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .form-title {
+      font-size: 1rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-manage-cat {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--primary);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-manage-cat:hover {
+      background-color: var(--switcher-bg);
+    }
+
+    .quick-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .chip-btn {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .chip-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .input-group {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    @media(min-width: 640px) {
+      .input-group {
+        grid-template-columns: 2fr 1.2fr 1fr 1fr;
+      }
+    }
+
+    input, select, textarea, button {
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .memo-input {
+      grid-column: 1 / -1;
+      resize: vertical;
+      min-height: 60px;
+      font-size: 0.9rem;
+    }
+
+    .btn-submit {
+      background-color: var(--primary);
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* ビューコンテンツ */
+    .view-content {
+      display: none;
+    }
+
+    .view-content.active {
+      display: block;
+    }
+
+    /* 今日の注意メッセージ */
+    .alert-banner {
+      background-color: var(--alert-bg);
+      border-left: 4px solid var(--alert-border);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .alert-banner.show {
+      display: block;
+    }
+
+    .alert-title {
+      font-weight: bold;
+      color: var(--alert-text);
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    /* フィルターバー */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0 0.25rem;
+    }
+
+    .filter-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--text-muted);
+    }
+
+    .filter-options {
+      display: flex;
+      gap: 0.5rem;
+      background: var(--switcher-bg);
+      padding: 3px;
+      border-radius: 8px;
+    }
+
+    .filter-btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .filter-btn.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* カードリスト表示 */
+    .schedule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .schedule-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border: 1px solid var(--border-color);
+      border-left: 6px solid var(--text-muted);
+      gap: 0.75rem;
+    }
+
+    .schedule-card.completed {
+      opacity: 0.55;
+      background-color: var(--bg-color);
+    }
+
+    .schedule-card.completed .schedule-info h3 {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* カード内編集フォーム */
+    .card-edit-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .card-edit-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+
+    @media(min-width: 640px) {
+      .card-edit-grid {
+        grid-template-columns: 2fr 1fr 1.2fr;
+      }
+    }
+
+    .card-edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+    }
+
+    .card-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .checkbox-completed {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--primary);
+      margin-top: 3px;
+    }
+
+    .schedule-info h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .schedule-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .schedule-memo {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      background-color: var(--switcher-bg);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      margin-top: 0.25rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .countdown-box {
+      text-align: right;
+    }
+
+    .days-left {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .days-left.urgent {
+      color: #ef4444;
+      font-size: 1.4rem;
+      animation: pulse 1.5s infinite;
+    }
+
+    .days-left.done {
+      color: var(--text-muted);
+      font-size: 1rem;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .btn-edit-item {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-edit-item:hover {
+      background-color: var(--switcher-bg);
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0.25rem;
+      margin-left: 0.25rem;
+    }
+
+    .btn-delete:hover {
+      color: #ef4444;
+    }
+
+    /* 月間カレンダー表示 */
+    .calendar-container {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .calendar-header h2 {
+      font-size: 1.2rem;
+    }
+
+    .calendar-nav-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      background-color: var(--border-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .day-header {
+      background-color: var(--card-bg);
+      padding: 0.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--text-muted);
+    }
+
+    .calendar-day {
+      background-color: var(--card-bg);
+      min-height: 80px;
+      padding: 0.25rem;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .calendar-day:hover {
+      opacity: 0.9;
+    }
+
+    .calendar-day.other-month {
+      background-color: var(--bg-color);
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    .calendar-day.today {
+      border: 2px solid var(--primary);
+    }
+
+    .day-number {
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+
+    .today .day-number {
+      color: var(--primary);
+    }
+
+    .event-badge {
+      font-size: 0.7rem;
+      padding: 2px 4px;
+      border-radius: 3px;
+      color: white;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-badge.is-completed {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* モーダルダイアログ */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 480px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .cat-list-manage {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      max-height: 240px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .cat-manage-item {
+      display: flex;
+      flex-direction: column;
+      padding: 0.6rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--input-bg);
+      gap: 0.4rem;
+    }
+
+    .cat-view-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cat-edit-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-edit {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .btn-secondary {
+      background: var(--switcher-bg);
+      color: var(--text-main);
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <h1>⚡ SmartSchedule</h1>
+      <p>爆速入力＆カウントダウンでミスを徹底防止！</p>
+    </div>
+    <!-- ダークモード切り替えボタン -->
+    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">
+      <span id="themeIcon">🌙</span> <span id="themeText">ダーク</span>
+    </button>
+  </header>
+
+  <!-- 表示切り替えタブ -->
+  <div class="view-switcher">
+    <button class="tab-btn active" id="tabList" onclick="switchView('list')">📋 リスト表示</button>
+    <button class="tab-btn" id="tabCalendar" onclick="switchView('calendar')">📅 月間カレンダー</button>
+  </div>
+
+  <!-- スケジュール登録フォーム -->
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-title">⚡ 爆速スケジュール追加</div>
+      <button class="btn-manage-cat" type="button" onclick="openCategoryModal()">⚙️ カテゴリ編集</button>
+    </div>
+    
+    <!-- 簡単入力チップ -->
+    <div class="quick-buttons" id="quickButtons"></div>
+
+    <form id="scheduleForm">
+      <div class="input-group">
+        <input type="text" id="title" placeholder="予定名（例: リアペ提出）" required>
+        <select id="category" onchange="handleCategorySelectChange(this.value)"></select>
+        <input type="datetime-local" id="datetime" required>
+        <button type="submit" class="btn-submit">追加する</button>
+        <textarea id="memo" class="memo-input" placeholder="メモ（任意: 持ち物、リンク、部屋番号など）"></textarea>
+      </div>
+    </form>
+  </div>
+
+  <!-- 今日のアラート表示 -->
+  <div id="alertBanner" class="alert-banner">
+    <div class="alert-title">⚠️ 本日締め切り・予定があります！</div>
+    <div id="alertContent"></div>
+  </div>
+
+  <!-- リスト表示ビュー -->
+  <div id="listView" class="view-content active">
+    <!-- 完了フィルター切り替え -->
+    <div class="filter-bar">
+      <div class="filter-title">予定一覧</div>
+      <div class="filter-options">
+        <button class="filter-btn active" id="filterActive" onclick="setFilter('active')">未完了のみ</button>
+        <button class="filter-btn" id="filterAll" onclick="setFilter('all')">すべて表示</button>
+      </div>
+    </div>
+
+    <div id="scheduleList" class="schedule-list"></div>
+  </div>
+
+  <!-- 月間カレンダー表示ビュー -->
+  <div id="calendarView" class="view-content">
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button class="calendar-nav-btn" type="button" onclick="changeMonth(-1)">◀ 前月</button>
+        <h2 id="currentMonthYear"></h2>
+        <button class="calendar-nav-btn" type="button" onclick="changeMonth(1)">次月 ▶</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+  </div>
+
+  <!-- カテゴリ管理モーダルダイアログ -->
+  <div class="modal-overlay" id="catModal">
+    <div class="modal-card">
+      <div class="modal-title">⚙️ スケジュールの種類（カテゴリ）管理</div>
+      
+      <div class="cat-list-manage" id="catManageList"></div>
+
+      <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem;">
+        <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem;">＋ 新しい種類を追加</div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem;">
+          <input type="text" id="newCatName" placeholder="名前 (例: 就活)" style="padding: 0.4rem;">
+          <input type="text" id="newCatIcon" placeholder="絵文字 (例: 👔)" style="padding: 0.4rem; text-align: center;">
+          <input type="color" id="newCatColor" value="#8b5cf6" style="padding: 0.1rem; height: 35px; cursor: pointer;">
+        </div>
+        <button type="button" class="btn-submit" style="width: 100%; padding: 0.5rem;" onclick="addCategory()">追加する</button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closeCategoryModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // デフォルトカテゴリ設定
+    const defaultCategories = [
+      { id: 'task', name: '課題・テスト', icon: '📝', color: '#ef4444' },
+      { id: 'work', name: 'バイト', icon: '💼', color: '#3b82f6' },
+      { id: 'other', name: 'その他', icon: '☕', color: '#10b981' }
+    ];
+
+    let categories = [];
+    let schedules = [];
+    let currentDate = new Date();
+    let editingCatId = null;
+    let editingScheduleId = null; // 編集中の予定ID
+    let currentFilter = 'active'; // 'active' or 'all'
+
+    // DOM要素
+    const scheduleForm = document.getElementById('scheduleForm');
+    const titleInput = document.getElementById('title');
+    const categoryInput = document.getElementById('category');
+    const datetimeInput = document.getElementById('datetime');
+    const memoInput = document.getElementById('memo');
+    const scheduleList = document.getElementById('scheduleList');
+    const alertBanner = document.getElementById('alertBanner');
+    const alertContent = document.getElementById('alertContent');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      loadCategories();
+      loadSchedules();
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(23, 59, 0, 0);
+      datetimeInput.value = formatDateForInput(tomorrow);
+
+      render();
+    });
+
+    // カテゴリ読み込み
+    function loadCategories() {
+      try {
+        const savedCat = localStorage.getItem('my_categories');
+        if (savedCat) {
+          categories = JSON.parse(savedCat);
+        } else {
+          categories = [...defaultCategories];
+        }
+      } catch (e) {
+        categories = [...defaultCategories];
+      }
+    }
+
+    function saveCategories() {
+      try {
+        localStorage.setItem('my_categories', JSON.stringify(categories));
+      } catch (e) {
+        console.error('Save categories failed:', e);
+      }
+    }
+
+    // スケジュール読み込み
+    function loadSchedules() {
+      try {
+        const saved = localStorage.getItem('my_schedules');
+        if (saved) schedules = JSON.parse(saved);
+      } catch (e) {
+        schedules = [];
+      }
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem('my_schedules', JSON.stringify(schedules));
+      } catch (e) {
+        console.error('Save failed:', e);
+      }
+    }
+
+    // テーマ機能
+    function initTheme() {
+      const savedTheme = localStorage.getItem('my_theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        updateThemeUI(true);
+      } else {
+        updateThemeUI(false);
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('my_theme', isDark ? 'dark' : 'light');
+      updateThemeUI(isDark);
+    }
+
+    function updateThemeUI(isDark) {
+      document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+      document.getElementById('themeText').textContent = isDark ? 'ライト' : 'ダーク';
+    }
+
+    // カテゴリ追加機能
+    function addCategory() {
+      const nameInput = document.getElementById('newCatName');
+      const iconInput = document.getElementById('newCatIcon');
+      const colorInput = document.getElementById('newCatColor');
+
+      const name = nameInput.value.trim();
+      const icon = iconInput.value.trim() || '📌';
+      const color = colorInput.value;
+
+      if (!name) {
+        alert('種類（カテゴリ）の名前を入力してください');
+        return;
+      }
+
+      const newCat = {
+        id: 'custom_' + Date.now(),
+        name: name,
+        icon: icon,
+        color: color
+      };
+
+      categories.push(newCat);
+      saveCategories();
+
+      nameInput.value = '';
+      iconInput.value = '';
+
+      renderCategoryManageList();
+      render();
+    }
+
+    // カテゴリ編集状態の制御
+    function startEditCategory(catId) {
+      editingCatId = catId;
+      renderCategoryManageList();
+    }
+
+    function cancelEditCategory() {
+      editingCatId = null;
+      renderCategoryManageList();
+    }
+
+    function saveCategoryEdit(catId) {
+      const name = document.getElementById(`edit-name-${catId}`).value.trim();
+      const icon = document.getElementById(`edit-icon-${catId}`).value.trim() || '📌';
+      const color = document.getElementById(`edit-color-${catId}`).value;
+
+      if (!name) {
+        alert('カテゴリ名を入力してください');
+        return;
+      }
+
+      const catIndex = categories.findIndex(c => c.id === catId);
+      if (catIndex !== -1) {
+        categories[catIndex].name = name;
+        categories[catIndex].icon = icon;
+        categories[catIndex].color = color;
+        saveCategories();
+      }
+
+      editingCatId = null;
+      renderCategoryManageList();
+      render();
+    }
+
+    function deleteCategory(catId) {
+      if (categories.length <= 1) {
+        alert('カテゴリは少なくとも1つ以上必要です');
+        return;
+      }
+
+      if (confirm('このカテゴリを削除しますか？（該当する予定の表示はその他に変更されます）')) {
+        categories = categories.filter(c => c.id !== catId);
+        saveCategories();
+
+        renderCategoryManageList();
+        render();
+      }
+    }
+
+    function handleCategorySelectChange(value) {
+      if (value === '__ADD_NEW__') {
+        openCategoryModal();
+        categoryInput.value = categories[0].id;
+      }
+    }
+
+    function openCategoryModal() {
+      editingCatId = null;
+      renderCategoryManageList();
+      document.getElementById('catModal').classList.add('show');
+    }
+
+    function closeCategoryModal() {
+      editingCatId = null;
+      document.getElementById('catModal').classList.remove('show');
+    }
+
+    function renderCategoryManageList() {
+      const listContainer = document.getElementById('catManageList');
+      listContainer.innerHTML = '';
+
+      categories.forEach(cat => {
+        const item = document.createElement('div');
+        item.className = 'cat-manage-item';
+
+        if (editingCatId === cat.id) {
+          item.innerHTML = `
+            <div class="cat-edit-row">
+              <input type="text" id="edit-name-${cat.id}" value="${escapeHtml(cat.name)}" style="padding: 0.3rem;">
+              <input type="text" id="edit-icon-${cat.id}" value="${escapeHtml(cat.icon)}" style="padding: 0.3rem; text-align: center;">
+              <input type="color" id="edit-color-${cat.id}" value="${cat.color}" style="padding: 0; height: 32px; cursor: pointer; width: 100%;">
+              <div style="display: flex; gap: 0.2rem;">
+                <button type="button" class="btn-submit btn-sm" onclick="saveCategoryEdit('${cat.id}')">保存</button>
+                <button type="button" class="btn-secondary btn-sm" onclick="cancelEditCategory()">取消</button>
+              </div>
+            </div>
+          `;
+        } else {
+          item.innerHTML = `
+            <div class="cat-view-row">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display:inline-block; width: 14px; height: 14px; border-radius: 50%; background-color: ${cat.color};"></span>
+                <span style="font-weight: bold;">${cat.icon} ${escapeHtml(cat.name)}</span>
+              </div>
+              <div style="display: flex; gap: 0.3rem; align-items: center;">
+                <button type="button" class="btn-sm btn-edit" onclick="startEditCategory('${cat.id}')">✏️ 編集</button>
+                <button type="button" class="btn-delete" style="font-size: 1rem;" onclick="deleteCategory('${cat.id}')">✕</button>
+              </div>
+            </div>
+          `;
+        }
+
+        listContainer.appendChild(item);
+      });
+    }
+
+    function renderCategorySelect() {
+      const currentSelected = categoryInput.value;
+      categoryInput.innerHTML = '';
+
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = `${cat.icon} ${cat.name}`;
+        categoryInput.appendChild(opt);
+      });
+
+      const addOpt = document.createElement('option');
+      addOpt.value = '__ADD_NEW__';
+      addOpt.textContent = '＋ カテゴリを追加・管理';
+      categoryInput.appendChild(addOpt);
+
+      if (currentSelected && categories.some(c => c.id === currentSelected)) {
+        categoryInput.value = currentSelected;
+      }
+    }
+
+    function renderQuickButtons() {
+      const container = document.getElementById('quickButtons');
+      container.innerHTML = '';
+
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'chip-btn';
+        btn.type = 'button';
+        btn.textContent = `＋ ${cat.icon} ${cat.name}`;
+        btn.onclick = () => setQuickInput(cat.name, cat.id);
+        container.appendChild(btn);
+      });
+    }
+
+    function setQuickInput(titlePrefix, categoryId) {
+      titleInput.value = `${titlePrefix}：`;
+      categoryInput.value = categoryId;
+      titleInput.focus();
+    }
+
+    // スケジュール追加
+    scheduleForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const newSchedule = {
+        id: Date.now(),
+        title: titleInput.value.trim(),
+        category: categoryInput.value,
+        datetime: datetimeInput.value,
+        memo: memoInput.value.trim(),
+        completed: false
+      };
+
+      schedules.push(newSchedule);
+      saveData();
+      render();
+
+      titleInput.value = '';
+      memoInput.value = '';
+    });
+
+    // 予定の編集機能
+    function startEditSchedule(id) {
+      editingScheduleId = id;
+      renderList();
+    }
+
+    function cancelEditSchedule() {
+      editingScheduleId = null;
+      renderList();
+    }
+
+    function saveScheduleEdit(id) {
+      const title = document.getElementById(`edit-item-title-${id}`).value.trim();
+      const category = document.getElementById(`edit-item-cat-${id}`).value;
+      const datetime = document.getElementById(`edit-item-date-${id}`).value;
+      const memo = document.getElementById(`edit-item-memo-${id}`).value.trim();
+
+      if (!title) {
+        alert('予定名を入力してください');
+        return;
+      }
+
+      if (!datetime) {
+        alert('日時を設定してください');
+        return;
+      }
+
+      const item = schedules.find(s => s.id === id);
+      if (item) {
+        item.title = title;
+        item.category = category;
+        item.datetime = datetime;
+        item.memo = memo;
+        saveData();
+      }
+
+      editingScheduleId = null;
+      render();
+    }
+
+    // 完了トグル切り替え
+    function toggleComplete(id) {
+      const item = schedules.find(s => s.id === id);
+      if (item) {
+        item.completed = !item.completed;
+        saveData();
+        render();
+      }
+    }
+
+    function deleteSchedule(id) {
+      if (confirm('この予定を削除しますか？')) {
+        schedules = schedules.filter(item => item.id !== id);
+        saveData();
+        render();
+      }
+    }
+
+    // 完了フィルター設定
+    function setFilter(filterType) {
+      currentFilter = filterType;
+      document.getElementById('filterActive').classList.toggle('active', filterType === 'active');
+      document.getElementById('filterAll').classList.toggle('active', filterType === 'all');
+      renderList();
+    }
+
+    function switchView(viewName) {
+      document.getElementById('tabList').classList.remove('active');
+      document.getElementById('tabCalendar').classList.remove('active');
+      document.getElementById('listView').classList.remove('active');
+      document.getElementById('calendarView').classList.remove('active');
+
+      if (viewName === 'list') {
+        document.getElementById('tabList').classList.add('active');
+        document.getElementById('listView').classList.add('active');
+      } else {
+        document.getElementById('tabCalendar').classList.add('active');
+        document.getElementById('calendarView').classList.add('active');
+        renderCalendar();
+      }
+    }
+
+    function render() {
+      renderCategorySelect();
+      renderQuickButtons();
+
+      schedules.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+      renderList();
+      renderAlerts();
+      renderCalendar();
+    }
+
+    function getCategoryInfo(catId) {
+      return categories.find(c => c.id === catId) || { name: 'その他', icon: '☕', color: '#10b981' };
+    }
+
+    function renderList() {
+      scheduleList.innerHTML = '';
+
+      const displaySchedules = schedules.filter(item => {
+        if (currentFilter === 'active') return !item.completed;
+        return true;
+      });
+
+      if (displaySchedules.length === 0) {
+        const msg = currentFilter === 'active' 
+          ? '未完了の予定はありません！🎉' 
+          : '予定はありません。上のフォームから追加してください！';
+        scheduleList.innerHTML = `<div class="empty-state">${msg}</div>`;
+        return;
+      }
+
+      const now = new Date();
+
+      displaySchedules.forEach(item => {
+        const itemDate = new Date(item.datetime);
+        const cat = getCategoryInfo(item.category);
+
+        const card = document.createElement('div');
+        card.className = `schedule-card ${item.completed ? 'completed' : ''}`;
+        card.style.borderLeftColor = cat.color;
+
+        // 編集モードUIの描写
+        if (editingScheduleId === item.id) {
+          card.innerHTML = `
+            <div class="card-edit-form">
+              <div class="card-edit-grid">
+                <input type="text" id="edit-item-title-${item.id}" value="${escapeHtml(item.title)}" required style="padding: 0.4rem;">
+                <select id="edit-item-cat-${item.id}" style="padding: 0.4rem;">
+                  ${categories.map(c => `<option value="${c.id}" ${c.id === item.category ? 'selected' : ''}>${c.icon}${escapeHtml(c.name)}</option>`).join('')}
+                </select>
+                <input type="datetime-local" id="edit-item-date-${item.id}" value="${item.datetime}" required style="padding: 0.4rem;">
+              </div>
+              <textarea id="edit-item-memo-${item.id}" class="memo-input" style="min-height:50px; padding: 0.4rem;" placeholder="メモ">${escapeHtml(item.memo || '')}</textarea>
+              <div class="card-edit-actions">
+                <button type="button" class="btn-submit btn-sm" onclick="saveScheduleEdit(${item.id})">保存</button>
+                <button type="button" class="btn-secondary btn-sm" onclick="cancelEditSchedule()">取消</button>
+              </div>
+            </div>
+          `;
+        } else {
+          // 通常表示UI
+          const diffMs = itemDate - now;
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+
+          let countdownText = '';
+          let isUrgent = false;
+
+          if (item.completed) {
+            countdownText = '完了済み';
+          } else if (diffMs < 0) {
+            countdownText = '期限切れ';
+          } else if (diffHours < 24) {
+            countdownText = `あと ${diffHours} 時間!`;
+            isUrgent = true;
+          } else {
+            countdownText = `あと ${diffDays} 日`;
+            if (diffDays <= 2) isUrgent = true;
+          }
+
+          const memoHtml = item.memo ? `<div class="schedule-memo">📝 ${escapeHtml(item.memo)}</div>` : '';
+
+          card.innerHTML = `
+            <div class="card-left">
+              <input type="checkbox" class="checkbox-completed" ${item.completed ? 'checked' : ''} onchange="toggleComplete(${item.id})">
+              <div class="schedule-info">
+                <h3>${escapeHtml(item.title)}</h3>
+                <div class="schedule-meta">
+                  <span class="badge" style="background-color: ${cat.color};">${cat.icon} ${escapeHtml(cat.name)}</span>
+                  <span>📅 ${formatDisplayDate(itemDate)}</span>
+                </div>
+                ${memoHtml}
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <div class="countdown-box">
+                <div class="days-left ${item.completed ? 'done' : (isUrgent ? 'urgent' : '')}">${countdownText}</div>
+              </div>
+              <button class="btn-edit-item" type="button" onclick="startEditSchedule(${item.id})">✏️ 編集</button>
+              <button class="btn-delete" type="button" onclick="deleteSchedule(${item.id})">✕</button>
+            </div>
+          `;
+        }
+
+        scheduleList.appendChild(card);
+      });
+    }
+
+    function renderAlerts() {
+      const today = new Date();
+      const todaySchedules = schedules.filter(item => {
+        if (item.completed) return false;
+        const itemDate = new Date(item.datetime);
+        return itemDate.toDateString() === today.toDateString();
+      });
+
+      if (todaySchedules.length > 0) {
+        alertBanner.classList.add('show');
+        alertContent.innerHTML = todaySchedules.map(item => `
+          <div>・<strong>${escapeHtml(item.title)}</strong>（${formatTimeOnly(new Date(item.datetime))}）</div>
+        `).join('');
+      } else {
+        alertBanner.classList.remove('show');
+      }
+    }
+
+    function renderCalendar() {
+      const calendarGrid = document.getElementById('calendarGrid');
+      const currentMonthYear = document.getElementById('currentMonthYear');
+      
+      if (!calendarGrid || !currentMonthYear) return;
+
+      calendarGrid.innerHTML = '';
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      currentMonthYear.textContent = `${year}年 ${month + 1}月`;
+
+      const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+      dayNames.forEach(name => {
+        const header = document.createElement('div');
+        header.className = 'day-header';
+        header.textContent = name;
+        calendarGrid.appendChild(header);
+      });
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      const startDayOfWeek = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+
+      const today = new Date();
+
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
+      for (let i = startDayOfWeek - 1; i >= 0; i--) {
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day other-month';
+        dayCell.innerHTML = `<div class="day-number">${prevMonthLastDay - i}</div>`;
+        calendarGrid.appendChild(dayCell);
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        const thisDate = new Date(year, month, day);
+        
+        let isToday = thisDate.toDateString() === today.toDateString();
+        dayCell.className = `calendar-day ${isToday ? 'today' : ''}`;
+        
+        dayCell.onclick = (e) => {
+          if (e.target.classList.contains('event-badge')) return;
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T23:59`;
+          datetimeInput.value = dateStr;
+          titleInput.focus();
+        };
+
+        let dayHtml = `<div class="day-number">${day}</div>`;
+
+        const dayEvents = schedules.filter(item => {
+          const itemDate = new Date(item.datetime);
+          return itemDate.getFullYear() === year &&
+                 itemDate.getMonth() === month &&
+                 itemDate.getDate() === day;
+        });
+
+        dayEvents.forEach(event => {
+          const cat = getCategoryInfo(event.category);
+          dayHtml += `
+            <div class="event-badge ${event.completed ? 'is-completed' : ''}" style="background-color: ${cat.color};" title="${escapeHtml(event.title)} (${formatTimeOnly(new Date(event.datetime))})" onclick="event.stopPropagation(); toggleComplete(${event.id})">
+              ${cat.icon} ${formatTimeOnly(new Date(event.datetime))} ${escapeHtml(event.title)}
+            </div>
+          `;
+        });
+
+        dayCell.innerHTML = dayHtml;
+        calendarGrid.appendChild(dayCell);
+      }
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function formatDateForInput(date) {
+      const pad = num => String(num).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function formatDisplayDate(date) {
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${month}/${day} ${hours}:${minutes}`;
+    }
+
+    function formatTimeOnly(date) {
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, match => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[match]));
+    }
+  </script>
+</body>
+</html>
